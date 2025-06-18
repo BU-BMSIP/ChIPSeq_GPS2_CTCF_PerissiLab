@@ -1,0 +1,9 @@
+SRR,FTP Link,Title,File name,Target Directory
+SRR040111,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040111/SRR040111.fastq.gz,3T3L1_t1_CTCF_rep1,ctcf_t1_r1,CTCF_3T3L1
+SRR040112,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040112/SRR040112.fastq.gz,3T3L1_t1_CTCF_rep2,ctcf_t1_r2,CTCF_3T3L1
+SRR040129,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040129/SRR040129.fastq.gz,3T3L1_t2_CTCF_rep1,ctcf_t2_r1,CTCF_3T3L1
+SRR040130,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040130/SRR040130.fastq.gz,3T3L1_t2_CTCF_rep2,ctcf_t2_r2,CTCF_3T3L1
+SRR040148,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040148/SRR040148.fastq.gz,3T3L1_t3_CTCF_rep1,ctcf_t3_r1,CTCF_3T3L1
+SRR040149,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040149/SRR040149.fastq.gz,3T3L1_t3_CTCF_rep2,ctcf_t3_r2,CTCF_3T3L1
+SRR040169,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040169/SRR040169.fastq.gz,3T3L1_t4_CTCF_rep1,ctcf_t4_r1,CTCF_3T3L1
+SRR040170,ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR040/SRR040170/SRR040170.fastq.gz,3T3L1_t4_CTCF_rep2,ctcf_t4_r2,CTCF_3T3L1

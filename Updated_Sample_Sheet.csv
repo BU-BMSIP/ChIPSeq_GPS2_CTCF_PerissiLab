@@ -1,0 +1,5 @@
+Name,Directory,Concat,Original_Files
+CTCF_t1,CTCF_3T3L1,yes,ctcf_t1_r1;ctcf_t1_r2
+CTCF_t2,CTCF_3T3L1,yes,ctcf_t2_r1;ctcf_t2_r2
+CTCF_t3,CTCF_3T3L1,yes,ctcf_t3_r1;ctcf_t3_r2
+CTCF_t4,CTCF_3T3L1,yes,ctcf_t4_r1;ctcf_t4_r2
