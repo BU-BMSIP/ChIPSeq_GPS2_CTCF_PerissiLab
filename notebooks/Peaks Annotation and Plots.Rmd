@@ -1,0 +1,91 @@
+---
+title: "Peak annotation and Plots"
+output: html_notebook
+---
+
+### Install and load the neccessary packages and libraries 
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install(c("ChIPseeker", "TxDb.Mmusculus.UCSC.mm39.knownGene", "org.Mm.eg.db"))
+
+library(ChIPseeker)
+library(TxDb.Mmusculus.UCSC.mm39.knownGene)
+library(org.Mm.eg.db)
+```
+
+### Load the peak files and annotate using ChIPSeeker
+```{r}
+#Change the file name accordingly
+peaks <- readPeakFile("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/all_peaks_merged.bed")
+txdb <- TxDb.Mmusculus.UCSC.mm39.knownGene
+peakAnno <- annotatePeak(peaks, tssRegion=c(-3000, 3000),
+                         TxDb=txdb, annoDb="org.Mm.eg.db")
+```
+
+### Saving the annotated results
+```{r}
+#Choose the appropriate directory to save the file
+output_dir <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq"
+
+# Create the directory if it does not exist
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)}
+
+output_file <- file.path(output_dir, paste0(basename("GPS2_CTCFpeaks_merged"), "_annotated.txt"))
+write.table(as.data.frame(peakAnno), file=output_file, sep="\t", quote=FALSE, row.names=FALSE)
+```
+
+### Plots to see composition of the annotated peaks
+```{r}
+# Assuming you have your peakAnno object ready
+plot <- plotAnnoPie(peakAnno)
+
+# Save the plot in the specified directory
+filepath <- file.path(output_dir, "CTCF_t1.png")
+png(filename = filepath, width = 8, height = 6, units = "in", rnes = 300)
+plotAnnoPie(peakAnno)  # Call the plotting function again inside the device
+dev.off()
+```
+
+### Annotation if you have all the peak files within one directory
+```{r}
+# Define input and output directories
+input_dir <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered"
+output_dir <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation"
+
+# Create the output directory if it doesn't exist
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
+}
+
+# Load the TxDb and OrgDb
+txdb <- TxDb.Mmusculus.UCSC.mm39.knownGene
+
+# Get a list of all BED files in the input directory
+bed_files <- list.files(input_dir, pattern = "\\.narrowPeak$", full.names = TRUE)
+
+# Loop through each BED file, annotate and save the results
+for (bed_file in bed_files) {
+  # Read the peak file
+  peaks <- readPeakFile(bed_file)
+  
+  # Annotate the peaks
+  peakAnno <- annotatePeak(peaks, tssRegion = c(-3000, 3000),
+                           TxDb = txdb, annoDb = "org.Mm.eg.db")
+  
+  # Extract the base name of the file (without directory and extension)
+  base_name <- tools::file_path_sans_ext(basename(bed_file))
+  
+  # Save the annotated results as a text file
+  output_file <- file.path(output_dir, paste0(base_name, "_annotated.txt"))
+  write.table(as.data.frame(peakAnno), file = output_file, sep = "\t", quote = FALSE, row.names = FALSE)
+  
+  # Generate and save the plot
+  plot_file <- file.path(output_dir, paste0(base_name, "_annopiechart.png"))
+  png(filename = plot_file, width = 8, height = 6, units = "in", res = 300)
+  plotAnnoPie(peakAnno)  # Call the plotting function inside the device
+  dev.off()
+}
+```
