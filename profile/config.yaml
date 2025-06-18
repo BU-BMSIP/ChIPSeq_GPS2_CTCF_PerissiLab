@@ -1,0 +1,6 @@
+executor: cluster-generic
+cluster-generic-submit-cmd: qsub -P perissilab -pe omp {threads}
+jobs: 10
+software-deployment-method: conda
+rerun-triggers: mtime
+cluster-generic-cancel-cmd: qdel
