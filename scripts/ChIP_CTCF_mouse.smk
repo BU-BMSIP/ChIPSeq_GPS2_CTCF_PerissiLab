@@ -106,7 +106,18 @@ rule all:
         expand(
             "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_extended_{size}.png",
             size=["2kb", "5kb", "10kb"]
-        )
+        ),
+
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_preadipocyte_merged.bed",
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_adipocyte_merged.bed",
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/intersect/GPS2_siCTL_vs_CTCF_preadipocyte.bed",
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/intersect/GPS2_d6_vs_CTCF_adipocyte.bed",
+
+        "CTCF_3T3L1/results/intersect/CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39.bed",
+        #computematrix ctcf over filtered gps2 peak
+        "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_peaks.gz",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_peaks_profile.png"
+
 # rule wget_files
 rule wget_files:
     output:
@@ -453,6 +464,19 @@ rule intersect_ctcf_gps2:
                            > {output.overlap}
         '''
 
+rule merge_ctcf_gps2_overlap_union:
+    input:
+        expand("CTCF_3T3L1/results/intersect/CTCF_t{tp}_GPS2_overlap.bed", tp=[1,2,3,4])
+    output:
+        "CTCF_3T3L1/results/intersect/CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39.bed"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/bedtools_env.yml"
+    shell:
+        """
+        cat {input} | sort -k1,1 -k2,2n | bedtools merge > {output}
+        """
+
+
 rule compute_matrix_CTCF_signal_on_GPS2_peaks:
     input:
         signal_files = [
@@ -494,6 +518,46 @@ rule plot_CTCF_signal_profile_on_GPS2_peaks:
             --plotTitle "CTCF Signal around GPS2 Binding Sites (siCtrl condition)"
         """
 
+rule compute_matrix_CTCF_signal_on_CommonGeneFiltered_GPS2_peaks:
+    input:
+        signal_files = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        reference_peaks = "Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common.bed"
+    output:
+        matrix_file = "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_peaks.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 8
+    shell:
+        '''
+        mkdir -p $(dirname {output.matrix_file})
+        computeMatrix reference-point \
+            -S {input.signal_files} \
+            -R {input.reference_peaks} \
+            --referencePoint center \
+            -b 3000 -a 3000 \
+            -out {output.matrix_file}
+        '''
+
+rule plot_CTCF_signal_profile_on_CommonGeneFiltered_GPS2_peaks:
+    input:
+        matrix_file = rules.compute_matrix_CTCF_signal_on_CommonGeneFiltered_GPS2_peaks.output.matrix_file
+    output:
+        plot_file = "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_peaks_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.plot_file})
+        plotProfile -m {input.matrix_file} \
+            -out {output.plot_file} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal around commongenes filtered GPS2 Peak(siCtrl condition)"
+        """
 
 
 rule compute_matrix_CTCF_signal_on_GPS2_promoters:
@@ -643,4 +707,60 @@ rule plot_profile_CTCF_on_GPS2_extended:
             --perGroup \
             --plotTitle "CTCF signal ±{wildcards.size} from GPS2 peak center" \
             --refPointLabel "GPS2 peak"
+        """
+
+#------------------------------------------------------------------------------------------
+#use siCTL for overlap with t1/t2 and d6 for t3/t4 (similar growth/differentiation stages)
+
+
+rule merge_CTCF_preadipocyte:
+    input:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_t1_bf.narrowPeak",
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_t2_bf.narrowPeak"
+    output:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_preadipocyte_merged.bed"
+    conda:
+        '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/bedtools_env.yml'
+    shell:
+        """
+        cat {input} | sort -k1,1 -k2,2n | bedtools merge > {output}
+        """
+
+rule merge_CTCF_adipocyte:
+    input:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_t3_bf.narrowPeak",
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_t4_bf.narrowPeak"
+    output:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_adipocyte_merged.bed"
+    conda:
+        '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/bedtools_env.yml'
+    shell:
+        """
+        cat {input} | sort -k1,1 -k2,2n | bedtools merge > {output}
+        """
+
+rule overlap_preadipocyte:
+    input:
+        gps2 = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/filtered/sictl_bf.narrowPeak",
+        ctcf = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_preadipocyte_merged.bed"
+    output:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/intersect/GPS2_siCTL_vs_CTCF_preadipocyte.bed"
+    conda:
+        '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/bedtools_env.yml'
+    shell:
+        """
+        bedtools intersect -a {input.gps2} -b {input.ctcf} -wa -wb > {output}
+        """
+
+rule overlap_adipocyte:
+    input:
+        gps2 = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/filtered/sictl_bf.narrowPeak",
+        ctcf = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_adipocyte_merged.bed"
+    output:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/intersect/GPS2_d6_vs_CTCF_adipocyte.bed"
+    conda:
+        '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/bedtools_env.yml'
+    shell:
+        """
+        bedtools intersect -a {input.gps2} -b {input.ctcf} -wa -wb > {output}
         """
