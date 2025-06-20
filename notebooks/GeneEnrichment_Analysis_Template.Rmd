@@ -1,0 +1,85 @@
+---
+title: "Gene Enrichment Analysis"
+output: html_document
+
+
+#!!!!!!!!!!!!Params Setting!!!!!!!!!! 
+params:
+  gene_file: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation/CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39_annotated.txt"  # Input gene list (SYMBOL format)
+  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/Enrichment" # Directory to save results
+  prefix: "CTCF_GPS2_union_t1to4" #Setting the output prefix
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load required libraries
+library(clusterProfiler)
+library(org.Mm.eg.db)
+library(enrichplot)
+library(DOSE)
+
+# Create output directory if it doesn't exist
+dir.create(params$output_dir, showWarnings = FALSE, recursive = TRUE)
+
+```
+
+
+```{r}
+# Read annotated peak file
+df <- read.delim(params$gene_file, stringsAsFactors = FALSE)
+
+# Extract gene symbols from the SYMBOL column
+genes <- df$SYMBOL
+
+# Remove NA or empty entries
+genes <- genes[!is.na(genes) & genes != ""]
+
+
+# Convert SYMBOLs to ENTREZIDs
+gene_entrez <- bitr(genes, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Mm.eg.db")
+entrez_ids <- gene_entrez$ENTREZID
+
+```
+
+```{r}
+# GO Biological Process enrichment analysis
+ego <- enrichGO(
+  gene = entrez_ids,
+  OrgDb = org.Mm.eg.db,
+  ont = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.2,
+  readable = TRUE
+)
+
+# Save GO results to CSV
+write.csv(as.data.frame(ego), file = file.path(params$output_dir, paste0(prefix, "_GO_BP_enrichment.csv")), row.names = FALSE)
+
+# Plot and save barplot of top enriched GO terms
+prefix <- params$prefix
+png(file.path(params$output_dir, paste0(prefix, "_GO_BP_barplot.png")), width = 1000, height = 600)
+barplot(ego, showCategory = 20, title = "GO BP Enrichment")
+dev.off()
+
+```
+
+
+```{r}
+# KEGG pathway enrichment analysis
+ekegg <- enrichKEGG(
+  gene = entrez_ids,
+  organism = 'mmu',
+  pvalueCutoff = 0.05
+)
+
+# Save KEGG results to CSV
+write.csv(as.data.frame(ego), file = file.path(params$output_dir, paste0(prefix, "_KEGG_enrichment.csv")), row.names = FALSE)
+# Plot and save dotplot of top enriched KEGG pathways
+png(file.path(params$output_dir, paste0(prefix, "KEGG_dotplot.png")), width = 1000, height = 600)
+dotplot(ekegg, showCategory = 20, title = "KEGG Pathway Enrichment")
+dev.off()
+
+```

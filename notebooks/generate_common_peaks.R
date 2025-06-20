@@ -9,7 +9,7 @@ output_bed <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annot
 # Read in the peak annotation table
 anno <- read.table(annot_file, sep = "\t", header = TRUE)
 
-# Read in the list of GPS2-CTCF common target genes (SYMBOLs)
+# Read in the list of GPS2-CTCF common target genes
 common_genes <- readLines(common_genes_file)
 
 # Filter peaks that are associated with the common genes
@@ -20,7 +20,7 @@ center <- round((filtered$start + filtered$end) / 2)
 start_new <- pmax(center - 3000, 0)
 end_new <- center + 3000
 
-# Construct a BED6-format data frame
+# Construct a data frame
 bed_df <- data.frame(
   chr = filtered$seqnames,
   start = start_new,

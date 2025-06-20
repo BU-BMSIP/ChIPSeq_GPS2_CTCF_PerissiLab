@@ -18,7 +18,7 @@ library(org.Mm.eg.db)
 ### Load the peak files and annotate using ChIPSeeker
 ```{r}
 #Change the file name accordingly
-peaks <- readPeakFile("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/all_peaks_merged.bed")
+peaks <- readPeakFile("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/intersect/CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39.bed")
 txdb <- TxDb.Mmusculus.UCSC.mm39.knownGene
 peakAnno <- annotatePeak(peaks, tssRegion=c(-3000, 3000),
                          TxDb=txdb, annoDb="org.Mm.eg.db")
@@ -27,13 +27,13 @@ peakAnno <- annotatePeak(peaks, tssRegion=c(-3000, 3000),
 ### Saving the annotated results
 ```{r}
 #Choose the appropriate directory to save the file
-output_dir <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq"
+output_dir <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation"
 
 # Create the directory if it does not exist
 if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)}
 
-output_file <- file.path(output_dir, paste0(basename("GPS2_CTCFpeaks_merged"), "_annotated.txt"))
+output_file <- file.path(output_dir, paste0(basename("CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39"), "_annotated.txt"))
 write.table(as.data.frame(peakAnno), file=output_file, sep="\t", quote=FALSE, row.names=FALSE)
 ```
 
@@ -44,7 +44,7 @@ plot <- plotAnnoPie(peakAnno)
 
 # Save the plot in the specified directory
 filepath <- file.path(output_dir, "CTCF_t1.png")
-png(filename = filepath, width = 8, height = 6, units = "in", rnes = 300)
+png(filename = filepath, width = 8, height = 6, units = "in", res = 300)
 plotAnnoPie(peakAnno)  # Call the plotting function again inside the device
 dev.off()
 ```
