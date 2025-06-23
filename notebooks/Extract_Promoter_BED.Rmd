@@ -1,0 +1,50 @@
+---
+title: "Extract Promoter Peaks as BED"
+output: html_document
+params:
+#  input_dir: "/your/annotation/folder"                     # Folder containing annotated txt files
+#  output_dir: "/your/output/folder"                        # Folder to save .bed files
+#  files: [""]  # List of files to process
+  input_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     # Folder containing annotated txt files
+  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                        # Folder to save .bed files
+  files: ["sictl_filtered_by_GPS2_CTCF_common.txt"]  # List of files to process
+
+
+---
+
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load required packages
+library(tools)
+dir.create(params$output_dir, showWarnings = FALSE, recursive = TRUE)
+
+```
+
+```{r}
+for (file in params$files) {
+  # Full path to input file
+  infile <- file.path(params$input_dir, file)
+  
+  # Generate output file names
+  base_name <- file_path_sans_ext(file)
+  outfile_promoter <- file.path(params$output_dir, paste0(base_name, "_promoter_only.bed"))
+  outfile_nonpromoter <- file.path(params$output_dir, paste0(base_name, "_non_promoter.bed"))
+  
+  # Load annotated file
+  anno <- read.delim(infile, header = TRUE, sep = "\t", stringsAsFactors = FALSE, fill = TRUE)
+  
+  # Extract promoter-only rows
+  promoter_peaks <- subset(anno, grepl("Promoter", anno$annotation))
+  bed_promoter <- promoter_peaks[, c("seqnames", "start", "end")]
+  write.table(bed_promoter, file = outfile_promoter, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+  
+  # Extract non-promoter rows
+  non_promoter_peaks <- subset(anno, !grepl("Promoter", anno$annotation))
+  bed_non_promoter <- non_promoter_peaks[, c("seqnames", "start", "end")]
+  write.table(bed_non_promoter, file = outfile_nonpromoter, sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+}
+
+```
+

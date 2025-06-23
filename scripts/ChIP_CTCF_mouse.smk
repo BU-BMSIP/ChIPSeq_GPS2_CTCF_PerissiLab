@@ -114,9 +114,14 @@ rule all:
         "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/intersect/GPS2_d6_vs_CTCF_adipocyte.bed",
 
         "CTCF_3T3L1/results/intersect/CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39.bed",
-        #computematrix ctcf over filtered gps2 peak
+        #computematrix ctcf over filtered gps2 peak and promoteronly peak
         "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_peaks.gz",
-        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_peaks_profile.png"
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_peaks_profile.png",
+
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks_profile.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks_profile.png",
+        directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/motifs/GPS2_CTCF_Intersect')
+
 
 # rule wget_files
 rule wget_files:
@@ -435,6 +440,19 @@ rule motifs_on_promoter:
         findMotifsGenome.pl {input.promoter_bed} {input.fasta} {output.motifs} -size given -p {threads}
         '''
 
+rule motifs_on_gps2_ctcf_intersect:
+    input:
+        bed = '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/intersect/CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39.bed',
+        fasta = 'Adapters_and_Annotations/GRCm39_annotation.fa'
+    output:
+        motifs = directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/motifs/GPS2_CTCF_Intersect/')
+    conda:
+        '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/homer_env.yml'
+    threads: 8
+    shell:
+        '''
+        findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
+        '''
 #-----------------------------------------------------------------------------------------------------------------------------
 rule create_union_peakset:
     input:
@@ -531,7 +549,7 @@ rule compute_matrix_CTCF_signal_on_CommonGeneFiltered_GPS2_peaks:
         matrix_file = "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_peaks.gz"
     conda:
         "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
-    threads: 8
+    threads: 8 
     shell:
         '''
         mkdir -p $(dirname {output.matrix_file})
@@ -558,6 +576,7 @@ rule plot_CTCF_signal_profile_on_CommonGeneFiltered_GPS2_peaks:
             --legendLocation upper-right \
             --plotTitle "CTCF Signal around commongenes filtered GPS2 Peak(siCtrl condition)"
         """
+
 
 
 rule compute_matrix_CTCF_signal_on_GPS2_promoters:
@@ -597,6 +616,84 @@ rule plot_CTCF_signal_on_GPS2_promoters:
             -out {output.plot} \
             --legendLocation upper-right \
             --plotTitle "CTCF Signal over GPS2 Promoter Peaks"
+        """
+
+rule compute_matrix_CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks:
+    input:
+        bw = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        bed = "Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_promoter_only.bed"
+    output:
+        matrix = "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_promoter_only_peaks.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix})
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.bed} \
+            --referencePoint center -b 3000 -a 3000 \
+            -out {output.matrix}
+        """
+
+rule plot_CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks:
+    input:
+        matrix = rules.compute_matrix_CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks.output.matrix
+    output:
+        plot = "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.plot})
+        plotProfile -m {input.matrix} \
+            -out {output.plot} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over filtered GPS2 Promoter Peaks"
+        """
+
+rule compute_matrix_CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks:
+    input:
+        bw = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        bed = "Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_non_promoter.bed"
+    output:
+        matrix = "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_non_promoter_peaks.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix})
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.bed} \
+            --referencePoint center -b 3000 -a 3000 \
+            -out {output.matrix}
+        """
+
+rule plot_CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks:
+    input:
+        matrix = rules.compute_matrix_CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks.output.matrix
+    output:
+        plot = "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.plot})
+        plotProfile -m {input.matrix} \
+            -out {output.plot} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over filtered GPS2 nonPromoter Peaks"
         """
 
 rule compute_matrix_GPS2_day0_on_CTCF_promoters:
