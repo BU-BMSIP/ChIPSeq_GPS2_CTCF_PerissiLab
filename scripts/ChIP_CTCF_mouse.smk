@@ -120,7 +120,17 @@ rule all:
 
         "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks_profile.png",
         "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks_profile.png",
-        directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/motifs/GPS2_CTCF_Intersect')
+        directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/motifs/GPS2_CTCF_Intersect'),
+        directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Promoter'),
+        directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Non_Promoter'),
+
+        #ATF4 dataset output
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_ATF4_promoters_profile.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_ATF4_profile.png",
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/intersect/ctcf_atf4_overlap.bed",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_ATF4_profile.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_promoter_only_ATF4_profile.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_non_promoter_ATF4_profile.png"
 
 
 # rule wget_files
@@ -453,6 +463,26 @@ rule motifs_on_gps2_ctcf_intersect:
         '''
         findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
         '''
+
+rule motifs_on_CommonGeneFiltered_GPS2_non_promoter_peaks_and_promoter_only_peaks:
+    input:
+        bed_promoter = '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_promoter_only.bed',
+        bed_nonpromoter = '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_non_promoter.bed',
+        fasta = 'Adapters_and_Annotations/GRCm39_annotation.fa'
+    output:
+        motifs_promoter = directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Promoter'),
+        motifs_nonpromoter= directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Non_Promoter')
+    conda:
+        '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/homer_env.yml'
+    threads: 16
+    shell:
+        '''
+        findMotifsGenome.pl {input.bed_promoter} {input.fasta} {output.motifs_promoter} -size given -p {threads}
+        findMotifsGenome.pl {input.bed_nonpromoter} {input.fasta} {output.motifs_nonpromoter} -size given -p {threads}
+        '''
+
+
+
 #-----------------------------------------------------------------------------------------------------------------------------
 rule create_union_peakset:
     input:
@@ -860,4 +890,179 @@ rule overlap_adipocyte:
     shell:
         """
         bedtools intersect -a {input.gps2} -b {input.ctcf} -wa -wb > {output}
+        """
+
+#----------------------------------------------------------------------------------------------
+#ATF4 Dataset
+rule compute_matrix_CTCF_signal_on_ATF4:
+    input:
+        bw = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        bed = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/ATF4_d6_basal_mm39.narrowpeak"
+    output:
+        matrix = "CTCF_3T3L1/results/matrix/CTCF_signal_over_ATF4.gz"
+    threads: 8 
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix})
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.bed} \
+            --referencePoint center -b 3000 -a 3000 \
+            -out {output.matrix}
+        """
+
+rule plot_CTCF_signal_on_ATF4:
+    input:
+        matrix = "CTCF_3T3L1/results/matrix/CTCF_signal_over_ATF4.gz"
+    output:
+        plot = "CTCF_3T3L1/results/plots/CTCF_signal_on_ATF4_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 4
+    shell:
+        """
+        mkdir -p $(dirname {output.plot})
+        plotProfile -m {input.matrix} \
+            -out {output.plot} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over GPS2 Promoter Peaks"
+        """
+
+
+
+rule compute_matrix_CTCF_signal_on_ATF4_promoters:
+    input:
+        bw = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        bed = "ATF4_3T3L1/results/annotation/ATF4_d6_basal_promoter.bed"
+    output:
+        matrix = "CTCF_3T3L1/results/matrix/CTCF_signal_over_ATF4_promoters.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 8 
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix})
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.bed} \
+            --referencePoint center -b 3000 -a 3000 \
+            -out {output.matrix}
+        """
+
+rule plot_CTCF_signal_on_ATF4_promoters:
+    input:
+        matrix = "CTCF_3T3L1/results/matrix/CTCF_signal_over_ATF4_promoters.gz"
+    output:
+        plot = "CTCF_3T3L1/results/plots/CTCF_signal_on_ATF4_promoters_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 4
+    shell:
+        """
+        mkdir -p $(dirname {output.plot})
+        plotProfile -m {input.matrix} \
+            -out {output.plot} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over GPS2 Promoter Peaks"
+        """
+
+rule intersect_ctcf_atf4:
+    input:
+        ctcf_adipocyte = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/filtered/CTCF_adipocyte_merged.bed",
+        atf4 = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/ATF4_d6_basal_mm39.narrowpeak"
+    output:
+        overlap = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/intersect/ctcf_atf4_overlap.bed"
+    conda: 
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/bedtools_env.yml"
+    shell:
+        '''
+        mkdir -p results/intersect
+        bedtools intersect -a <(cut -f1-3 {input.ctcf_adipocyte}) \
+                           -b <(cut -f1-3 {input.atf4}) -u \
+                           > {output.overlap}
+        '''
+rule compute_matrix_all_CTCF_signal_on_filtered_ATF4:
+    input:
+        bw = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        filtered_bed = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_genes.bed",
+        promoter_only = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_genes_promoter_only.bed",
+        non_promoter = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_genes_non_promoter.bed"
+    output:
+        matrix_filtered = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_ATF4.gz",
+        matrix_promoter_only = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_promoter_only_ATF4.gz",
+        matrix_non_promoter = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_non_promoter_ATF4.gz"
+    threads: 16 
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix_filtered})
+
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.filtered_bed} \
+            --referencePoint center -b 3000 -a 3000 \
+            -out {output.matrix_filtered}
+
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.promoter_only} \
+            --referencePoint center -b 3000 -a 3000 \
+            -out {output.matrix_promoter_only}
+
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.non_promoter} \
+            --referencePoint center -b 3000 -a 3000 \
+            -out {output.matrix_non_promoter}
+        """
+
+
+rule plot_all_CTCF_signal_on_filtered_ATF4:
+    input:
+        matrix_filtered = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_ATF4.gz",
+        matrix_promoter_only = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_promoter_only_ATF4.gz",
+        matrix_non_promoter = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_non_promoter_ATF4.gz"
+    output:
+        plot_filtered = "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_ATF4_profile.png",
+        plot_promoter_only = "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_promoter_only_ATF4_profile.png",
+        plot_non_promoter = "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_non_promoter_ATF4_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 8
+    shell:
+        """
+        mkdir -p $(dirname {output.plot_filtered})
+
+        plotProfile -m {input.matrix_filtered} \
+            -out {output.plot_filtered} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over All Filtered ATF4 Peaks"
+
+        plotProfile -m {input.matrix_promoter_only} \
+            -out {output.plot_promoter_only} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over Promoter-only ATF4 Peaks"
+
+        plotProfile -m {input.matrix_non_promoter} \
+            -out {output.plot_non_promoter} \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over Non-promoter ATF4 Peaks"
         """

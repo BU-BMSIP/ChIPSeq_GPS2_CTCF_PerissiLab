@@ -5,9 +5,9 @@ output: html_document
 
 #!!!!!!!!!!!!Params Setting!!!!!!!!!! 
 params:
-  gene_file: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation/CTCF_GPS2_overlap_union_t1to4_3T3L1_mm39_annotated.txt"  # Input gene list (SYMBOL format)
-  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/Enrichment" # Directory to save results
-  prefix: "CTCF_GPS2_union_t1to4" #Setting the output prefix
+  gene_file: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ctcf_atf4_overlap_annotated.txt"  # Input gene list (SYMBOL format)
+  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/Enrichment" # Directory to save results
+  prefix: "ctcf_atf4_overlap" #Setting the output prefix
 ---
 
 
@@ -56,11 +56,10 @@ ego <- enrichGO(
 )
 
 # Save GO results to CSV
-write.csv(as.data.frame(ego), file = file.path(params$output_dir, paste0(prefix, "_GO_BP_enrichment.csv")), row.names = FALSE)
+write.csv(as.data.frame(ego), file = file.path(params$output_dir, paste0(params$prefix, "_GO_BP_enrichment.csv")), row.names = FALSE)
 
 # Plot and save barplot of top enriched GO terms
-prefix <- params$prefix
-png(file.path(params$output_dir, paste0(prefix, "_GO_BP_barplot.png")), width = 1000, height = 600)
+png(file.path(params$output_dir, paste0(params$prefix, "_GO_BP_barplot.png")), width = 1000, height = 600)
 barplot(ego, showCategory = 20, title = "GO BP Enrichment")
 dev.off()
 
@@ -76,9 +75,9 @@ ekegg <- enrichKEGG(
 )
 
 # Save KEGG results to CSV
-write.csv(as.data.frame(ego), file = file.path(params$output_dir, paste0(prefix, "_KEGG_enrichment.csv")), row.names = FALSE)
+write.csv(as.data.frame(ego), file = file.path(params$output_dir, paste0(params$prefix, "_KEGG_enrichment.csv")), row.names = FALSE)
 # Plot and save dotplot of top enriched KEGG pathways
-png(file.path(params$output_dir, paste0(prefix, "KEGG_dotplot.png")), width = 1000, height = 600)
+png(file.path(params$output_dir, paste0(params$prefix, "KEGG_dotplot.png")), width = 1000, height = 600)
 dotplot(ekegg, showCategory = 20, title = "KEGG Pathway Enrichment")
 dev.off()
 

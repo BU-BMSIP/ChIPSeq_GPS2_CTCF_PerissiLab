@@ -5,9 +5,11 @@ params:
 #  input_dir: "/your/annotation/folder"                     # Folder containing annotated txt files
 #  output_dir: "/your/output/folder"                        # Folder to save .bed files
 #  files: [""]  # List of files to process
-  input_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     # Folder containing annotated txt files
-  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                        # Folder to save .bed files
-  files: ["sictl_filtered_by_GPS2_CTCF_common.txt"]  # List of files to process
+
+  input_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation" 
+  #"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     # Folder containing annotated txt files
+  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation"                        # Folder to save .bed files
+  files: ["ATF4_d6_basal_mm39_annotated.txt"]  # List of files to process
 
 
 ---
