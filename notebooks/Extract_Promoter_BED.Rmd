@@ -9,7 +9,7 @@ params:
   input_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation" 
   #"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     # Folder containing annotated txt files
   output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation"                        # Folder to save .bed files
-  files: ["ATF4_d6_basal_mm39_annotated.txt"]  # List of files to process
+  files: ["ATF4_filtered_by_ATF4_CTCF_GPS2_common_genes.txt"]  # List of files to process
 
 
 ---
