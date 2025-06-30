@@ -123,6 +123,9 @@ rule all:
         directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/motifs/GPS2_CTCF_Intersect'),
         directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Promoter'),
         directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Non_Promoter'),
+        directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_flanks'),
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_500bpextended.png",
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_500bpextended_heatmap.png",
 
         #ATF4 dataset output
         "CTCF_3T3L1/results/plots/CTCF_signal_on_ATF4_promoters_profile.png",
@@ -438,7 +441,7 @@ rule motifs:
         '''
         findMotifsGenome.pl {input.filtered} {input.fasta} {output.motifs} -p {threads}
         '''
-
+        
 rule motifs_on_promoter:
     input:
         promoter_bed = '{directory}/results/annotation/{peak_file}_promoter_only.bed',
@@ -484,6 +487,19 @@ rule motifs_on_CommonGeneFiltered_GPS2_non_promoter_peaks_and_promoter_only_peak
         findMotifsGenome.pl {input.bed_nonpromoter} {input.fasta} {output.motifs_nonpromoter} -size given -p {threads}
         '''
 
+rule motifs_on_filtered_gps2_flanks:
+    input:
+        bed = '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_slop300bpflanks_only.bed',
+        fasta = 'Adapters_and_Annotations/GRCm39_annotation.fa'
+    output:
+        motifs = directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_flanks')
+    conda:
+        '/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/homer_env.yml'
+    threads: 8
+    shell:
+        '''
+        findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
+        '''
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -780,7 +796,7 @@ rule generate_genome_file:
         cut -f1,2 {input.fasta}.fai > {output.genome}
         """
 
-
+#this is wrong. i will del it later
 rule extend_GPS2_peaks:
     input:
         "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation/sictl_promoter_peaks.bed",
@@ -799,35 +815,29 @@ rule extend_GPS2_peaks:
         bedtools slop -i {input[0]} -g {input.genome} -b 10000 > {output[2]}
         """
 
-rule compute_matrix_CTCF_on_GPS2_extended:
+rule compute_matrix_CTCF_on_GPS2_500bpextended:
     input:
         bw=expand("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/bigwig/CTCF_t{i}.bw", i=[1, 2, 3, 4]),
-        bed="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation/sictl_promoter_peaks_extended_{size}.bed"
+        bed="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_slop500bp.bed"
     output:
-        matrix="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/matrix/CTCF_signal_on_GPS2_extended_{size}.gz"
+        matrix="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/matrix/CTCF_signal_on_GPS2_500bpextended.gz"
     threads: 16
     conda:
         "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
-    params:
-        flank=lambda wildcards: {"2kb": 2000, "5kb": 5000, "10kb": 10000}[wildcards.size]
     shell:
         """
         computeMatrix reference-point \
             -S {input.bw} \
             -R {input.bed} \
-            --referencePoint center \
-            --beforeRegionStartLength {params.flank} \
-            --afterRegionStartLength {params.flank} \
-            --binSize 50 \
-            --skipZeros \
+            --referencePoint center -b 3000 -a 3000 \
             -o {output.matrix}
         """
 
-rule plot_profile_CTCF_on_GPS2_extended:
+rule plot_profile_CTCF_on_GPS2_500bpextended:
     input:
-        matrix="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/matrix/CTCF_signal_on_GPS2_extended_{size}.gz"
+        matrix="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/matrix/CTCF_signal_on_GPS2_500bpextended.gz"
     output:
-        png="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_extended_{size}.png"
+        png="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_500bpextended.png"
     threads: 8
     conda:
         "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
@@ -835,9 +845,28 @@ rule plot_profile_CTCF_on_GPS2_extended:
         """
         plotProfile -m {input.matrix} -out {output.png} \
             --perGroup \
-            --plotTitle "CTCF signal ±{wildcards.size} from GPS2 peak center" \
-            --refPointLabel "GPS2 peak"
+            --plotTitle "CTCF signal from GPS2 peak(500bpextended) center" \
+            --legendLocation upper-right 
         """
+
+rule plot_heatmap_CTCF_on_GPS2_500bpextended:
+    input:
+        matrix="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/matrix/CTCF_signal_on_GPS2_500bpextended.gz"
+    output:
+        png="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_500bpextended_heatmap.png"
+    threads: 8
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        plotHeatmap -m {input.matrix} -out {output.png} \
+            --colorMap RdBu \
+            --plotTitle "CTCF signal from GPS2 peaks (500bp extended)" \
+            --legendLocation upper-right \
+            --refPointLabel "Center"
+        """
+#end at here.
+
 
 #------------------------------------------------------------------------------------------
 #use siCTL for overlap with t1/t2 and d6 for t3/t4 (similar growth/differentiation stages)
