@@ -14,6 +14,8 @@ write.table(gps2_genes,
             file="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation/GPS2_gene_symbols.txt",
             row.names=FALSE, col.names=FALSE, quote=FALSE)
 
+
+
 # ========== Annotate CTCF promoter peaks (all time points) ==========
 ctcf_files <- c("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation/CTCF_t1_promoter_only.bed", 
                 "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation/CTCF_t2_promoter_only.bed", 
@@ -38,6 +40,18 @@ write.table(common_gps2_ctcf,
             file="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation/GPS2_CTCF_common_genes.txt",
             row.names=FALSE, col.names=FALSE, quote=FALSE)
 cat("Number of common genes between GPS2 and CTCF:", length(common_gps2_ctcf), "\n")
+
+# ========== Annotate GPS2 d6 promoter peaks ==========
+gps2_d6_peaks <- readPeakFile("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day6_annotated_promoter_only.bed")
+gps2_d6_anno <- annotatePeak(gps2_d6_peaks, TxDb=txdb, tssRegion=c(-2000, 2000), annoDb="org.Mm.eg.db")
+gps2_d6_df <- as.data.frame(gps2_d6_anno)
+gps2_d6_genes <- unique(na.omit(gps2_d6_df$SYMBOL))
+write.table(gps2_d6_genes,
+            file="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/GPS2_d6_gene_symbols.txt",
+            row.names=FALSE, col.names=FALSE, quote=FALSE)
+cat("Number of genes in GPS2 day6 promoter peaks:", length(gps2_d6_genes), "\n")
+
+
 
 # ========== Annotate ATF4 promoter peaks ==========
 atf4_peaks <- readPeakFile("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_d6_basal_promoter.bed")

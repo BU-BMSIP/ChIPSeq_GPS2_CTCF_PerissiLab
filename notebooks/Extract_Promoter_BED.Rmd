@@ -6,10 +6,10 @@ params:
 #  output_dir: "/your/output/folder"                        # Folder to save .bed files
 #  files: [""]  # List of files to process
 
-  input_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation" 
+  input_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation" 
   #"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     # Folder containing annotated txt files
-  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation"                        # Folder to save .bed files
-  files: ["ATF4_filtered_by_ATF4_CTCF_GPS2_common_genes.txt"]  # List of files to process
+  output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation"                        # Folder to save .bed files
+  files: ["gps2_day6_annotated.txt"]  # List of files to process
 
 
 ---

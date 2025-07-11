@@ -119,6 +119,14 @@ rule all:
         directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Promoter'),
         directory('/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_Non_Promoter'),
         expand("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/motifs/Filtered_GPS2_flanks_{size}bp", size=SIZES),
+         # GPS2 d6 flanks
+        expand("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/motifs/Filtered_GPS2d6_flanks_{size}bp", size=SIZES),
+        # ATF4 flanks
+        expand("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/motifs/Filtered_ATF4_flanks_{size}bp", size=SIZES),
+        # GPS2 d6 center
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/motifs/GPS2_d6_promoter_center",
+        # ATF4 center
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/motifs/ATF4_promoter_center",
         "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_500bpextended.png",
         "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/plots/CTCF_signal_on_GPS2_500bpextended_heatmap.png",
          # CTCF on d6 GPS2 peaks
@@ -503,6 +511,61 @@ rule motifs_on_filtered_gps2_flanks:
         findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
         """
 
+rule motifs_on_filtered_atf4_flanks:
+    input:
+        bed = lambda wildcards: f"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_slop{wildcards.size}bpflanks_only.bed",
+        fasta = "Adapters_and_Annotations/GRCm39_annotation.fa"
+    output:
+        motifs = directory("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/motifs/Filtered_ATF4_flanks_{size}bp")
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/homer_env.yml"
+    threads: 16
+    shell:
+        """
+        findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
+        """
+
+rule motifs_on_filtered_gps2d6_flanks:
+    input:
+        bed = lambda wildcards: f"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day0_filtered_by_CTCF_GPS2_d6_common_genes_slop{wildcards.size}bpflanks_only.bed",
+        fasta = "Adapters_and_Annotations/GRCm39_annotation.fa"
+    output:
+        motifs = directory("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/motifs/Filtered_GPS2d6_flanks_{size}bp")
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/homer_env.yml"
+    threads: 16
+    shell:
+        """
+        findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
+        """
+
+rule motifs_on_gps2_d6_center:
+    input:
+        bed = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day6_annotated_promoter_only.bed",
+        fasta = "Adapters_and_Annotations/GRCm39_annotation.fa"
+    output:
+        motifs = directory("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/motifs/GPS2_d6_promoter_center")
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/homer_env.yml"
+    threads: 16
+    shell:
+        """
+        findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
+        """
+
+rule motifs_on_atf4_center:
+    input:
+        bed = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_genes_promoter_only.bed",
+        fasta = "Adapters_and_Annotations/GRCm39_annotation.fa"
+    output:
+        motifs = directory("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/motifs/ATF4_promoter_center")
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/homer_env.yml"
+    threads: 16
+    shell:
+        """
+        findMotifsGenome.pl {input.bed} {input.fasta} {output.motifs} -size given -p {threads}
+        """
 
 
 #-----------------------------------------------------------------------------------------------------------------------------
