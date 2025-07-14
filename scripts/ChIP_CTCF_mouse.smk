@@ -136,6 +136,9 @@ rule all:
         # GPS2 & CTCF on common genes d6
         "CTCF_3T3L1/results/plots/GPS2_CTCF_signal_on_common_genes_d6_profile.png",
         "CTCF_3T3L1/results/plots/GPS2_CTCF_signal_on_common_genes_d6_heatmap.png",
+        # CTCF on common genes GPS2 d6
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_GPS2d6_promoter_heatmap.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_GPS2d6_promoter_profile.png",
 
         #ATF4 dataset output
         "CTCF_3T3L1/results/plots/CTCF_signal_on_ATF4_promoters_profile.png",
@@ -146,7 +149,9 @@ rule all:
         "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_non_promoter_ATF4_profile.png",
         "CTCF_3T3L1/results/plots/CTCF_signal_on_3filtered_ATF4_profile.png",
         "CTCF_3T3L1/results/plots/CTCF_signal_on_3filtered_promoter_only_ATF4_profile.png",
-        "CTCF_3T3L1/results/plots/CTCF_signal_on_3filtered_non_promoter_ATF4_profile.png"
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_3filtered_non_promoter_ATF4_profile.png",
+        "ATF4_3T3L1/results/plots/GPS2d6_CTCF_on_ATF4_promoter_heatmap.png",
+        "ATF4_3T3L1/results/plots/GPS2d6_CTCF_on_ATF4_promoter_profile.png"
 
 
 # rule wget_files
@@ -527,7 +532,7 @@ rule motifs_on_filtered_atf4_flanks:
 
 rule motifs_on_filtered_gps2d6_flanks:
     input:
-        bed = lambda wildcards: f"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day0_filtered_by_CTCF_GPS2_d6_common_genes_slop{wildcards.size}bpflanks_only.bed",
+        bed = lambda wildcards: f"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day6_filtered_by_CTCF_GPS2_d6_common_genes_slop{wildcards.size}bpflanks_only.bed",
         fasta = "Adapters_and_Annotations/GRCm39_annotation.fa"
     output:
         motifs = directory("/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/motifs/Filtered_GPS2d6_flanks_{size}bp")
@@ -965,6 +970,61 @@ rule plot_profile_GPS2_CTCF_d6_on_common_genes:
             -out {output.profile_file}
         """
 
+rule compute_matrix_CTCF_on_filtered_GPS2d6_promoter:
+    input:
+        signal_files = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        reference_regions = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day6_filtered_by_CTCF_GPS2_d6_common_genes_promoter_only.bed"
+    output:
+        matrix_file = "CTCF_3T3L1/results/matrix/CTCF_signal_on_filtered_GPS2d6_promoter.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 16
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix_file})
+        computeMatrix reference-point \
+            -S {input.signal_files} \
+            -R {input.reference_regions} \
+            --referencePoint center \
+            -b 3000 -a 3000 \
+            -out {output.matrix_file}
+        """
+
+rule plot_heatmap_CTCF_on_filtered_GPS2d6_promoter:
+    input:
+        matrix_file = rules.compute_matrix_CTCF_on_filtered_GPS2d6_promoter.output.matrix_file
+    output:
+        heatmap_file = "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_GPS2d6_promoter_heatmap.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.heatmap_file})
+        plotHeatmap -m {input.matrix_file} \
+            --colorMap YlGnBu \
+            --plotTitle "CTCF on GPS2d6 common promoter" \
+            -out {output.heatmap_file}
+        """
+
+rule plot_profile_CTCF_on_filtered_GPS2d6_promoter:
+    input:
+        matrix_file = rules.compute_matrix_CTCF_on_filtered_GPS2d6_promoter.output.matrix_file
+    output:
+        profile_file = "CTCF_3T3L1/results/plots/CTCF_signal_on_filtered_GPS2d6_promoter_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.profile_file})
+        plotProfile -m {input.matrix_file} \
+            --perGroup \
+            --legendLocation upper-right \
+            --plotTitle "CTCF on GPS2d6 common promoter" \
+            -out {output.profile_file}
+        """
 
 #----------------------------------------------------------------------------
 #
@@ -1360,3 +1420,66 @@ rule plot_all_CTCF_signal_on_3filtered_ATF4:
             --legendLocation upper-right \
             --plotTitle "CTCF Signal over 3Filtered Non-promoter ATF4 Peaks"
         """
+
+#compute matrix_ gps2/ctcf t3/t4 on atf4 signal
+rule compute_matrix_gps2_ctcf_signal_on_ATF4:
+    input:
+        bw = [
+            "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/bigwig/gps2_day6.bw",
+            "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        bed = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_d6_basal_promoter.bed"
+    output:
+        matrix = "ATF4_3T3L1/results/matrix/GPS2d6_CTCF_on_ATF4_promoter_matrix.gz"
+    threads: 8
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p ATF4_3T3L1/results/matrix
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.bed} \
+            --referencePoint center \
+            -b 3000 -a 3000 \
+            -bs 50 \
+            --skipZeros \
+            --missingDataAsZero \
+            -o {output.matrix}
+        """
+
+rule plot_gps2_ctcf_signal_on_ATF4_heatmap:
+    input:
+        matrix = "ATF4_3T3L1/results/matrix/GPS2d6_CTCF_on_ATF4_promoter_matrix.gz"
+    output:
+        png = "ATF4_3T3L1/results/plots/GPS2d6_CTCF_on_ATF4_promoter_heatmap.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p ATF4_3T3L1/results/plots
+        plotHeatmap -m {input.matrix} \
+            -out {output.png} \
+            --colorMap RdBu_r \
+            --refPointLabel "center" \
+            --heatmapHeight 10 --heatmapWidth 6
+        """
+
+rule plot_gps2_ctcf_signal_on_ATF4_profile:
+    input:
+        matrix = "ATF4_3T3L1/results/matrix/GPS2d6_CTCF_on_ATF4_promoter_matrix.gz"
+    output:
+        png = "ATF4_3T3L1/results/plots/GPS2d6_CTCF_on_ATF4_promoter_profile.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p ATF4_3T3L1/results/plots
+        plotProfile -m {input.matrix} \
+            -out {output.png} \
+            --perGroup \
+            --refPointLabel "center" \
+            --plotTitle "GPS2/CTCF signal around ATF4 promoter"
+        """
+#ctcf_gps2d6 promoter_filtered heatmap

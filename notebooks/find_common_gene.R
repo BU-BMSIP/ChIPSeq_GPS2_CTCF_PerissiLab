@@ -75,3 +75,12 @@ write.table(common_all_three,
             file="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/GPS2_ATF4_CTCF_common_genes.txt",
             row.names=FALSE, col.names=FALSE, quote=FALSE)
 cat("Number of common genes among GPS2, ATF4, and CTCF:", length(common_all_three), "\n")
+
+# ========== GPS2 d6 & CTCF overlap ==========
+common_gps2d6_ctcf <- intersect(gps2_d6_genes, ctcf_genes)
+write.table(common_gps2d6_ctcf,
+            file="/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/GPS2d6_CTCF_common_genes.txt",
+            row.names=FALSE, col.names=FALSE, quote=FALSE)
+cat("Number of common genes between GPS2 d6 and CTCF:", length(common_gps2d6_ctcf), "\n")
+
+

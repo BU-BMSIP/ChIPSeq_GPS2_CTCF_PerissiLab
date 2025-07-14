@@ -7,9 +7,10 @@ params:
 #  files: [""]  # List of files to process
 
   input_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation" 
-  #"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     # Folder containing annotated txt files
+  #"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     
+  # Folder containing annotated txt files
   output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation"                        # Folder to save .bed files
-  files: ["gps2_day6_annotated.txt"]  # List of files to process
+  files: [""]  # List of files to process
 
 
 ---
