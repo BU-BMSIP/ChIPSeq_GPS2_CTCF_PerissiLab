@@ -11,17 +11,17 @@ Mitochondrial stress triggers retrograde signaling to the nucleus. GPS2 relocate
 - integrated analysis of in-house GPS2 with public ATF4/CTCF datasets
 - peak intersection, motif discovery, signal profiling, and RNA–DNA interaction mapping
 
-## Repository Layout
-├── docs/ # Documentation, diagrams, protocol notes
-├── envs/ # Conda environments for workflows
-├── notebooks/ # Analysis Jupyter notebooks
-├── profile/ # Profiling/logs for workflow runs
-├── scripts/ # Python/R/Bash utilities (e.g., annotation, parsing)
-├── Peak_Calls_with_Control.csv
-├── Peak_Calls_without_Control.csv
-├── Sample_Data_for_CTCF.csv
-├── Updated_Sample_Sheet.csv
-└── README.md
+## Repository Layout  
+├── docs/ # Documentation, diagrams, protocol notes  
+├── envs/ # Conda environments for workflows  
+├── notebooks/ # Analysis Jupyter notebooks  
+├── profile/ # Profiling/logs for workflow runs  
+├── scripts/ # Python/R/Bash utilities (e.g., annotation, parsing)  
+├── Peak_Calls_with_Control.csv  
+├── Peak_Calls_without_Control.csv  
+├── Sample_Data_for_CTCF.csv  
+├── Updated_Sample_Sheet.csv  
+└── README.md  
 
 
 ## Prerequisites
