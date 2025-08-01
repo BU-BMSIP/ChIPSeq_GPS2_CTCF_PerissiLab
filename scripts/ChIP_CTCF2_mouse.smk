@@ -44,7 +44,7 @@ rule plot_GPS2_signal_on_CTCF_promoters:
 rule compute_matrix_signal_on_common_promoters:
     input:
         bed= "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/CTCF_3T3L1/results/annotation/GPS2_CTCF_common_gene_peaks_centered_±3kb.bed",
-        bw = [
+        bw = [ 
             "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
             "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
             "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",

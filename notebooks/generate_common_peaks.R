@@ -4,7 +4,7 @@ library(dplyr)
 # Define file paths
 annot_file <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day6_annotated.txt"
 common_genes_file <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/GPS2d6_CTCF_common_genes.txt"
-output_bed <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day6_filtered_ctcf_gps2d6_common_genes.bed"
+output_bed <- "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation/gps2_day6_filtered_by_CTCF_GPS2_d6_common_genes_promoter_only.bed"
 
 # 如果你想以后快速换文件，只需改上面三行
 

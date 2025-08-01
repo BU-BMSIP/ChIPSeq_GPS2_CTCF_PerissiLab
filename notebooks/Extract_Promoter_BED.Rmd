@@ -10,7 +10,7 @@ params:
   #"/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Silencing/GPS2/results/annotation"                     
   # Folder containing annotated txt files
   output_dir: "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/Adipocyte_differentiation/GPS2/results/annotation"                        # Folder to save .bed files
-  files: [""]  # List of files to process
+  files: ["gps2_day_filtered_by_CTCF_GPS2_d6_common_genes.bed"]  # List of files to process
 
 
 ---
