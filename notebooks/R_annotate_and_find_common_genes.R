@@ -1,3 +1,18 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Script: find_common_gene.R
+#
+# Purpose:
+#   1. Annotate promoter peaks for GPS2, CTCF, GPS2 day6, and ATF4 using ChIPseeker.
+#   2. Extract unique gene SYMBOLs from each annotation.
+#   3. Write out each gene list to a text file.
+#   4. Compute and save intersections:
+#      - GPS2 ∩ CTCF
+#      - ATF4 ∩ CTCF
+#      - GPS2 ∩ ATF4 ∩ CTCF
+#      - GPS2 day6 ∩ CTCF
+#   5. Print counts of each overlap.
+# ─────────────────────────────────────────────────────────────────────────────
+
 # ========== Load libraries ==========
 library(ChIPseeker)
 library(TxDb.Mmusculus.UCSC.mm39.knownGene)

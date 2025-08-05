@@ -197,7 +197,14 @@ rule all:
         "CTCF_3T3L1/results/plots/CTCF_signal_on_3filtered_promoter_only_ATF4_profile.png",
         "CTCF_3T3L1/results/plots/CTCF_signal_on_3filtered_non_promoter_ATF4_profile.png",
         "ATF4_3T3L1/results/plots/GPS2d6_CTCF_on_ATF4_promoter_heatmap.png",
-        "ATF4_3T3L1/results/plots/GPS2d6_CTCF_on_ATF4_promoter_profile.png"
+        "ATF4_3T3L1/results/plots/GPS2d6_CTCF_on_ATF4_promoter_profile.png",
+
+        "CTCF_3T3L1/results/plots/CTCF_signal_over_filtered_ATF4_profile_zoom1kb.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_over_filtered_promoter_only_ATF4_profile_zoom1kb.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_over_filtered_non_promoter_ATF4_profile_zoom1kb.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_peaks_profile_zoom1kb.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks_profile_zoom1kb.png",
+        "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks_profile_zoom1kb.png"
 
 
 # Typical ChIPseq analysis workflow----------------------------------------------------------------------------------------------------------------  
@@ -870,7 +877,131 @@ rule plot_CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks:
             --legendLocation upper-right \
             --plotTitle "CTCF Signal over filtered GPS2 nonPromoter Peaks"
         """
+#------------------------------1kb----------------------
+# A. Common Genes Zoom (±1 kb)
+rule compute_matrix_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_peaks:
+    input:
+        signal_files = expand("CTCF_3T3L1/results/bigwig/CTCF_t{n}.bw", n=[1,2,3,4]),
+        reference_peaks = "Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common.bed"
+    output:
+        matrix_file = "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_peaks_zoom1kb.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 8
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix_file})
+        computeMatrix reference-point \
+            -S {input.signal_files} \
+            -R {input.reference_peaks} \
+            --referencePoint center \
+            -b 1000 -a 1000 \
+            -out {output.matrix_file}
+        """
 
+rule plot_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_peaks:
+    input:
+        matrix_file = rules.compute_matrix_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_peaks.output.matrix_file
+    output:
+        plot_file = "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_peaks_profile_zoom1kb.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.plot_file})
+        plotProfile \
+            -m {input.matrix_file} \
+            --perGroup \
+            --samplesLabel "CTCF_t1" "CTCF_t2" "CTCF_t3" "CTCF_t4" \
+            --colors red blue green orange \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal around GPS2–CTCF Co-bound Sites" \
+            -out {output.plot_file}
+        """
+
+# B. Promoter-Only Zoom (±1 kb)
+rule compute_matrix_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_promoter_only_peaks:
+    input:
+        signal_files = expand("CTCF_3T3L1/results/bigwig/CTCF_t{n}.bw", n=[1,2,3,4]),
+        reference_peaks = "Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_promoter_only.bed"
+    output:
+        matrix_file = "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_promoter_only_peaks_zoom1kb.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 8
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix_file})
+        computeMatrix reference-point \
+            -S {input.signal_files} \
+            -R {input.reference_peaks} \
+            --referencePoint center \
+            -b 1000 -a 1000 \
+            -out {output.matrix_file}
+        """
+
+rule plot_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_promoter_only_peaks:
+    input:
+        matrix_file = rules.compute_matrix_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_promoter_only_peaks.output.matrix_file
+    output:
+        plot_file = "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_promoter_only_peaks_profile_zoom1kb.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.plot_file})
+        plotProfile \
+            -m {input.matrix_file} \
+            --perGroup \
+            --samplesLabel "CTCF_t1" "CTCF_t2" "CTCF_t3" "CTCF_t4" \
+            --colors red blue green orange \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over GPS2 Promoter Co-bound Peaks" \
+            -out {output.plot_file}
+        """
+
+# C. Non-Promoter Zoom (±1 kb)
+rule compute_matrix_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_non_promoter_peaks:
+    input:
+        signal_files = expand("CTCF_3T3L1/results/bigwig/CTCF_t{n}.bw", n=[1,2,3,4]),
+        reference_peaks = "Silencing/GPS2/results/annotation/sictl_filtered_by_GPS2_CTCF_common_non_promoter.bed"
+    output:
+        matrix_file = "CTCF_3T3L1/results/matrix/CTCF_signal_over_CommonGeneFiltered_GPS2_non_promoter_peaks_zoom1kb.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 8
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix_file})
+        computeMatrix reference-point \
+            -S {input.signal_files} \
+            -R {input.reference_peaks} \
+            --referencePoint center \
+            -b 1000 -a 1000 \
+            -out {output.matrix_file}
+        """
+
+rule plot_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_non_promoter_peaks:
+    input:
+        matrix_file = rules.compute_matrix_CTCF_signal_zoom1kb_on_CommonGeneFiltered_GPS2_non_promoter_peaks.output.matrix_file
+    output:
+        plot_file = "CTCF_3T3L1/results/plots/CTCF_signal_on_CommonGeneFiltered_GPS2_non_promoter_peaks_profile_zoom1kb.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    shell:
+        """
+        mkdir -p $(dirname {output.plot_file})
+        plotProfile \
+            -m {input.matrix_file} \
+            --perGroup \
+            --samplesLabel "CTCF_t1" "CTCF_t2" "CTCF_t3" "CTCF_t4" \
+            --colors red blue green orange \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over GPS2 Non-Promoter Co-bound Peaks" \
+            -out {output.plot_file}
+        """
+
+#-------------------------------------------------------
 rule compute_matrix_GPS2_day0_on_CTCF_promoters:
     input:
         bw = "Adipocyte_differentiation/GPS2/results/bigwig/gps2_day0.bw",
@@ -1321,7 +1452,100 @@ rule plot_all_CTCF_signal_on_filtered_ATF4:
             --legendLocation upper-right \
             --plotTitle "CTCF Signal over Non-promoter ATF4 Peaks"
         """
+#-------------------------------------------1kb-----------------
+# --------------------------- Zoomed Profiles for Filtered ATF4 Peaks (±1 kb) ---------------------------
 
+# Compute ±1 kb matrices for all, promoter-only, and non-promoter ATF4 peaks
+rule compute_matrix_CTCF_signal_zoom1kb_on_filtered_ATF4:
+    input:
+        bw             = [
+            "CTCF_3T3L1/results/bigwig/CTCF_t1.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t2.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t3.bw",
+            "CTCF_3T3L1/results/bigwig/CTCF_t4.bw"
+        ],
+        filtered_bed   = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_genes.bed",
+        promoter_only  = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_genes_promoter_only.bed",
+        non_promoter   = "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/ATF4_3T3L1/results/annotation/ATF4_filtered_by_ATF4_CTCF_common_genes_non_promoter.bed"
+    output:
+        matrix_all          = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_ATF4_zoom1kb.gz",
+        matrix_promoter     = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_promoter_only_ATF4_zoom1kb.gz",
+        matrix_nonpromoter  = "CTCF_3T3L1/results/matrix/CTCF_signal_over_filtered_non_promoter_ATF4_zoom1kb.gz"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 16
+    shell:
+        """
+        mkdir -p $(dirname {output.matrix_all})
+
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.filtered_bed} \
+            --referencePoint center \
+            -b 1000 -a 1000 \
+            -out {output.matrix_all}
+
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.promoter_only} \
+            --referencePoint center \
+            -b 1000 -a 1000 \
+            -out {output.matrix_promoter}
+
+        computeMatrix reference-point \
+            -S {input.bw} \
+            -R {input.non_promoter} \
+            --referencePoint center \
+            -b 1000 -a 1000 \
+            -out {output.matrix_nonpromoter}
+        """
+
+# Plot ±1 kb profiles for the three ATF4 peak sets
+rule plot_CTCF_signal_zoom1kb_on_filtered_ATF4:
+    input:
+        matrix_all         = rules.compute_matrix_CTCF_signal_zoom1kb_on_filtered_ATF4.output.matrix_all,
+        matrix_promoter    = rules.compute_matrix_CTCF_signal_zoom1kb_on_filtered_ATF4.output.matrix_promoter,
+        matrix_nonpromoter = rules.compute_matrix_CTCF_signal_zoom1kb_on_filtered_ATF4.output.matrix_nonpromoter
+    output:
+        plot_all         = "CTCF_3T3L1/results/plots/CTCF_signal_over_filtered_ATF4_profile_zoom1kb.png",
+        plot_promoter    = "CTCF_3T3L1/results/plots/CTCF_signal_over_filtered_promoter_only_ATF4_profile_zoom1kb.png",
+        plot_nonpromoter = "CTCF_3T3L1/results/plots/CTCF_signal_over_filtered_non_promoter_ATF4_profile_zoom1kb.png"
+    conda:
+        "/projectnb/perissilab/Xinyu/GPS2_CHIPseq/envs/deeptools_env.yml"
+    threads: 8
+    shell:
+        """
+        mkdir -p $(dirname {output.plot_all})
+
+        plotProfile \
+            -m {input.matrix_all} \
+            --perGroup \
+            --samplesLabel "CTCF_t1" "CTCF_t2" "CTCF_t3" "CTCF_t4" \
+            --colors red blue green orange \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over All Filtered ATF4 Peaks" \
+            -out {output.plot_all}
+
+        plotProfile \
+            -m {input.matrix_promoter} \
+            --perGroup \
+            --samplesLabel "CTCF_t1" "CTCF_t2" "CTCF_t3" "CTCF_t4" \
+            --colors red blue green orange \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over Promoter-only ATF4 Peaks" \
+            -out {output.plot_promoter}
+
+        plotProfile \
+            -m {input.matrix_nonpromoter} \
+            --perGroup \
+            --samplesLabel "CTCF_t1" "CTCF_t2" "CTCF_t3" "CTCF_t4" \
+            --colors red blue green orange \
+            --legendLocation upper-right \
+            --plotTitle "CTCF Signal over Non-promoter ATF4 Peaks" \
+            -out {output.plot_nonpromoter}
+        """
+
+#---------------------------------------------------------------
 #3 means filtered by CTCF/ATF4/GPS2 common genes
 rule compute_matrix_all_CTCF_signal_on_3filtered_ATF4:
     input:
